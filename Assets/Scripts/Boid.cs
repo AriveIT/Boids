@@ -91,5 +91,9 @@ public class Boid : MonoBehaviour {
         direction = Vector3.Normalize(direction);
     }
 
+    public void destroyBoid() {
+        Destroy(gameObject);
+    }
+
 
 }

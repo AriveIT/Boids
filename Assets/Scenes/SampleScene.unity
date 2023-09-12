@@ -260,7 +260,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   nearbyRadius: 5
-  flockSize: 500
+  flockSize: 10
   boidPrefab: {fileID: 8568077096642146494, guid: c43127553425b364e99ba3beeef1842c, type: 3}
   separationMultiplier: 1.75
   cohesionMultiplier: 7
