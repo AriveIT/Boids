@@ -84,6 +84,7 @@ public class Boid : MonoBehaviour {
     }
 
     public void exertForce(Vector3 force) {
+
         direction += force * Time.deltaTime;
 
         if(direction == Vector3.zero) direction = force;

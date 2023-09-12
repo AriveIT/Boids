@@ -41,11 +41,16 @@ public class Flock : MonoBehaviour
 
         for(int i = 0; i < flockSize; i++) {
             List<int> nearby = getNearby(i, nearbyRadius);
+
+            // no forces exerted if no nearby boids
+            if(nearby.Count == 0) {
+                continue;
+            }
             
             Vector3 separationForce = separation(i, nearby) * separationMultiplier;
             Vector3 cohesionForce = cohesion(i, nearby) * cohesionMultiplier;
             Vector3 alignmentForce = alignment(i, nearby) * alignmentMultiplier;
-            
+
             flock[i].exertForce(separationForce + cohesionForce + alignmentForce);
 
         }
