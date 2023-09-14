@@ -25,10 +25,7 @@ public class Flock : MonoBehaviour
         
         // create boids with random starting position
         for (int i = 0; i < flockSize; i++) {
-            Vector3 randomPos = new Vector3(UnityEngine.Random.Range(-10.0f, 10.0f), UnityEngine.Random.Range(-5.0f, 5.0f), 0);
-            GameObject newBoid = Instantiate(boidPrefab, randomPos, Quaternion.identity, transform);
-
-            flock[i] = newBoid.GetComponent<Boid>();
+            insertNewBoid(flock, i);
         }
     }
 
@@ -42,14 +39,14 @@ public class Flock : MonoBehaviour
         for(int i = 0; i < flockSize; i++) {
             List<int> nearby = getNearby(i, nearbyRadius);
 
-            // no forces exerted if no nearby boids
+            // no force exerted if no nearby boids
             if(nearby.Count == 0) {
                 continue;
             }
             
             Vector3 separationForce = separation(i, nearby) * separationMultiplier;
             Vector3 cohesionForce = cohesion(i, nearby) * cohesionMultiplier;
-            Vector3 alignmentForce = alignment(i, nearby) * alignmentMultiplier;
+            Vector3 alignmentForce = alignment(nearby) * alignmentMultiplier;
 
             flock[i].exertForce(separationForce + cohesionForce + alignmentForce);
 
@@ -57,21 +54,28 @@ public class Flock : MonoBehaviour
     }
 
     void updateFlockSize() {
-        Boid[] newFlock = new Boid[flockSize];
 
-        // if flock size has increased, create new Boids
+        // if flock size has increased
         if(flockSize > lastFlockSize) {
-            Array.Copy(flock, newFlock, lastFlockSize);
+            // check if have to make new array
+            if(flockSize > flock.Length) {
+                // make new array to make room for new boids
+                Boid[] newFlock = new Boid[flockSize];
+                Array.Copy(flock, newFlock, lastFlockSize);
 
-            for(int i = lastFlockSize; i < flockSize; i++) {
-                Vector3 randomPos = new Vector3(UnityEngine.Random.Range(-10.0f, 10.0f), UnityEngine.Random.Range(-5.0f, 5.0f), 0);
-                GameObject newBoid = Instantiate(boidPrefab, randomPos, Quaternion.identity, transform);
+                // create new Boids
+                for(int i = lastFlockSize; i < flockSize; i++) {
+                    insertNewBoid(newFlock, i);
+                }
 
-                newFlock[i] = newBoid.GetComponent<Boid>();
+                flock = newFlock;
+            } else {
+                // create new Boids
+                for(int i = lastFlockSize; i < flockSize; i++) {
+                    insertNewBoid(flock, i);
+                }
             }
         } else {
-            Array.Copy(flock, newFlock, flockSize);
-
             // if flock size has decreased, destroy excess Boids
             for(int i = flockSize; i < lastFlockSize; i++) {
                 flock[i].destroyBoid();
@@ -79,11 +83,16 @@ public class Flock : MonoBehaviour
         }
 
         lastFlockSize = flockSize;
-        flock = newFlock;
+    }
+
+    void insertNewBoid(Boid[] curFlock, int i) {
+        Vector3 randomPos = new Vector3(UnityEngine.Random.Range(-10.0f, 10.0f), UnityEngine.Random.Range(-5.0f, 5.0f), 0);
+        GameObject newBoid = Instantiate(boidPrefab, randomPos, Quaternion.identity, transform);
+        curFlock[i] = newBoid.GetComponent<Boid>();
     }
 
     // push boids to move in same direction
-    Vector3 alignment(int boidIndex, List<int> nearby) {
+    Vector3 alignment(List<int> nearby) {
         Vector3 sum = Vector3.zero;
 
         foreach (int index in nearby) {
@@ -124,14 +133,14 @@ public class Flock : MonoBehaviour
 
 
     // returns list of indexes of boids within radius r;
-    List<int> getNearby(int boidIndex, float r) {
+    List<int> getNearby(int curBoid, float r) {
         List<int> nearby = new List<int>();
         float rSquared = r * r;
 
         for (int i = 0; i < flockSize; i++) {
-            if(boidIndex == i) continue;
+            if(curBoid == i) continue;
 
-           float sqrDist = getSqrDist(boidIndex, i);
+           float sqrDist = getSqrDist(curBoid, i);
 
             if(sqrDist < rSquared) {
                 nearby.Add(i);
@@ -146,4 +155,9 @@ public class Flock : MonoBehaviour
         Vector3 difference = flock[i].transform.position - flock[j].transform.position;
         return difference.sqrMagnitude;
     }
+
+    void OnValidate() {
+        if (flockSize < 0) flockSize = 0;
+    }
 }
+
